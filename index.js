@@ -1,3 +1,6 @@
+// REPO: webhookserver
+// index.js
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');  // Import cors
@@ -13,7 +16,12 @@ const port = 3000;
 app.use(bodyParser.json());
 
 // Use CORS middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:19006' // Allow only your frontend origin
+}));
+
+// Enable pre-flight across-the-board
+app.options('*', cors());
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
