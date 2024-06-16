@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');  // Import cors
 const admin = require('firebase-admin');
 
 // Path to your Firebase service account key file
@@ -10,6 +11,9 @@ const port = 3000;
 
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
+
+// Use CORS middleware
+app.use(cors());
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
