@@ -5,6 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');  // Import cors
 const admin = require('firebase-admin');
+const moment = require('moment'); // Import moment
 
 // Path to your Firebase service account key file
 const serviceAccount = require('./serviceAccountKey.json');
@@ -34,8 +35,17 @@ app.post('/webhook', async (req, res) => {
   try {
     console.log('Received request:', req.body);
     const queryResult = req.body.queryResult;
-    
-    // Accessing all documents in the "tasks" collection
+    const dateParameter = queryResult.parameters.date; // Capture the date parameter
+
+    // Parse the date parameter using moment
+    const targetDate = moment(dateParameter);
+    if (!targetDate.isValid()) {
+      throw new Error('Invalid date parameter');
+    }
+
+    const startOfDay = targetDate.startOf('day').toDate();
+    const endOfDay = targetDate.endOf('day').toDate();
+
     const db = admin.firestore();
     const tasksRef = db.collection('tasks');
     const snapshot = await tasksRef.where('startDate', '>=', startOfDay).where('startDate', '<=', endOfDay).get();
@@ -51,7 +61,7 @@ app.post('/webhook', async (req, res) => {
       res.json({ fulfillmentText: `Tasks: ${tasks.join(' | ')}` });
     }
   } catch (err) {
-    res.json({ fulfillmentText: `Error getting tasks: ${err}` });
+    res.json({ fulfillmentText: `Error getting tasks: ${err.message}` });
   }
 });
 
