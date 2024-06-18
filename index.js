@@ -34,14 +34,14 @@ app.post('/webhook', async (req, res) => {
   try {
     console.log('Received request:', req.body);
     const queryResult = req.body.queryResult;
-
+    
     // Accessing all documents in the "tasks" collection
     const db = admin.firestore();
     const tasksRef = db.collection('tasks');
-    const snapshot = await tasksRef.get();
+    const snapshot = await tasksRef.where('startDate', '>=', startOfDay).where('startDate', '<=', endOfDay).get();
 
     if (snapshot.empty) {
-      res.json({ fulfillmentText: 'No tasks found!' });
+      res.json({ fulfillmentText: 'You have no tasks for the specified date. Your schedule is free.' });
     } else {
       let tasks = [];
       snapshot.forEach(doc => {
