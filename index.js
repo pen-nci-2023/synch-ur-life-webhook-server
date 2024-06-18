@@ -37,8 +37,18 @@ app.post('/webhook', async (req, res) => {
     const queryResult = req.body.queryResult;
     const dateParameter = queryResult.parameters.date; // Capture the date parameter
 
-    // Parse the date parameter using moment
-    const targetDate = moment(dateParameter);
+    // Convert the dateParameter to an appropriate format for comparison
+    let targetDate;
+    if (dateParameter.toLowerCase() === 'today') {
+      targetDate = moment();
+    } else if (dateParameter.toLowerCase() === 'tomorrow') {
+      targetDate = moment().add(1, 'days');
+    } else if (dateParameter.toLowerCase() === 'yesterday') {
+      targetDate = moment().subtract(1, 'days');
+    } else {
+      targetDate = moment(dateParameter);
+    }
+
     if (!targetDate.isValid()) {
       throw new Error('Invalid date parameter');
     }
