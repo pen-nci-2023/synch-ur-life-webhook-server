@@ -34,8 +34,13 @@ admin.initializeApp({
 // Webhook endpoint
 app.post('/webhook', async (req, res) => {
   try {
-    console.log('Received request:', req.body);
+    console.log('Received request:', JSON.stringify(req.body, null, 2)); // Log the entire request for debugging
+
     const queryResult = req.body.queryResult;
+    if (!queryResult || !queryResult.parameters) {
+      throw new Error('Invalid request: Missing queryResult or parameters');
+    }
+
     const dateParameter = queryResult.parameters.date; // Capture the date parameter
 
     if (!dateParameter) {
@@ -44,14 +49,14 @@ app.post('/webhook', async (req, res) => {
 
     // Use moment to handle date parsing
     let targetDate;
-    if (dateParameter === 'today') {
+    if (dateParameter.toLowerCase() === 'today') {
       targetDate = moment();
-    } else if (dateParameter === 'tomorrow') {
+    } else if (dateParameter.toLowerCase() === 'tomorrow') {
       targetDate = moment().add(1, 'days');
-    } else if (dateParameter === 'yesterday') {
+    } else if (dateParameter.toLowerCase() === 'yesterday') {
       targetDate = moment().subtract(1, 'days');
     } else {
-      targetDate = moment(dateParameter);
+      targetDate = moment(dateParameter, ['YYYY-MM-DD', moment.ISO_8601]);
     }
 
     if (!targetDate.isValid()) {
