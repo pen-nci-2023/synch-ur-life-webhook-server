@@ -3,13 +3,14 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors');  // Import cors
+const cors = require('cors');
 const admin = require('firebase-admin');
 const moment = require('moment'); // Import moment
 
 // Path to your Firebase service account key file
 const serviceAccount = require('./serviceAccountKey.json');
 
+// Initialize Express app
 const app = express();
 const port = 3000;
 
@@ -37,13 +38,17 @@ app.post('/webhook', async (req, res) => {
     const queryResult = req.body.queryResult;
     const dateParameter = queryResult.parameters.date; // Capture the date parameter
 
-    // Convert the dateParameter to an appropriate format for comparison
+    if (!dateParameter) {
+      throw new Error('Missing date parameter');
+    }
+
+    // Use moment to handle date parsing
     let targetDate;
-    if (dateParameter.toLowerCase() === 'today') {
+    if (dateParameter === 'today') {
       targetDate = moment();
-    } else if (dateParameter.toLowerCase() === 'tomorrow') {
+    } else if (dateParameter === 'tomorrow') {
       targetDate = moment().add(1, 'days');
-    } else if (dateParameter.toLowerCase() === 'yesterday') {
+    } else if (dateParameter === 'yesterday') {
       targetDate = moment().subtract(1, 'days');
     } else {
       targetDate = moment(dateParameter);
@@ -77,5 +82,5 @@ app.post('/webhook', async (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Webhook server is running on http://localhost:${port}`);
+  console.log(`Server is running on port ${port}`);
 });
