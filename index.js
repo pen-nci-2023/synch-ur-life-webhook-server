@@ -28,35 +28,32 @@ app.options('*', cors());
 // Initialize Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://synch-ur-life-842fe.firebaseio.com'  // Replace with your actual database URL
+  databaseURL: 'https://synch-ur-life-842fe.firebaseio.com' // Replace with your actual database URL
 });
 
 // Webhook endpoint
 app.post('/webhook', async (req, res) => {
   try {
-    console.log('Received request:', JSON.stringify(req.body, null, 2)); // Log the entire request for debugging
-
+    console.log('Received request:', req.body);
     const queryResult = req.body.queryResult;
-    if (!queryResult || !queryResult.parameters) {
+
+    // Ensure queryResult and parameters exist
+    if (!queryResult || !queryResult.parameters || !queryResult.parameters.date) {
       throw new Error('Invalid request: Missing queryResult or parameters');
     }
 
     const dateParameter = queryResult.parameters.date; // Capture the date parameter
 
-    if (!dateParameter) {
-      throw new Error('Missing date parameter');
-    }
-
     // Use moment to handle date parsing
     let targetDate;
-    if (dateParameter.toLowerCase() === 'today') {
+    if (dateParameter === 'today') {
       targetDate = moment();
-    } else if (dateParameter.toLowerCase() === 'tomorrow') {
+    } else if (dateParameter === 'tomorrow') {
       targetDate = moment().add(1, 'days');
-    } else if (dateParameter.toLowerCase() === 'yesterday') {
+    } else if (dateParameter === 'yesterday') {
       targetDate = moment().subtract(1, 'days');
     } else {
-      targetDate = moment(dateParameter, ['YYYY-MM-DD', moment.ISO_8601]);
+      targetDate = moment(dateParameter);
     }
 
     if (!targetDate.isValid()) {
@@ -89,3 +86,4 @@ app.post('/webhook', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
