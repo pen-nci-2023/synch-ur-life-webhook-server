@@ -5,7 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const admin = require('firebase-admin');
-const moment = require('moment'); // Import moment
+const moment = require('moment');
 
 // Path to your Firebase service account key file
 const serviceAccount = require('./serviceAccountKey.json');
@@ -34,7 +34,7 @@ admin.initializeApp({
 // Webhook endpoint
 app.post('/webhook', async (req, res) => {
   try {
-    console.log('Received request:', req.body);
+    console.log('Received request:', JSON.stringify(req.body, null, 2));
     const queryResult = req.body.queryResult;
 
     // Ensure queryResult and parameters exist
@@ -42,15 +42,18 @@ app.post('/webhook', async (req, res) => {
       throw new Error('Invalid request: Missing queryResult or parameters');
     }
 
-    const dateParameter = queryResult.parameters.date; // Capture the date parameter
+    let dateParameter = queryResult.parameters.date;
+    // Adjust the date parameter if necessary
+    if (typeof dateParameter === 'string') {
+      dateParameter = dateParameter.toLowerCase();
+    }
 
-    // Use moment to handle date parsing
     let targetDate;
-    if (dateParameter === 'today') {
+    if (dateParameter.includes('today')) {
       targetDate = moment();
-    } else if (dateParameter === 'tomorrow') {
+    } else if (dateParameter.includes('tomorrow')) {
       targetDate = moment().add(1, 'days');
-    } else if (dateParameter === 'yesterday') {
+    } else if (dateParameter.includes('yesterday')) {
       targetDate = moment().subtract(1, 'days');
     } else {
       targetDate = moment(dateParameter);
@@ -86,4 +89,3 @@ app.post('/webhook', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
