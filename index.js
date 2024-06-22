@@ -28,7 +28,7 @@ app.options('*', cors());
 // Initialize Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://synch-ur-life-842fe.firebaseio.com' // Replace with your actual database URL
+  databaseURL: 'https://synch-ur-life-842fe.firebaseio.com'  // Replace with your actual database URL
 });
 
 // Webhook endpoint
@@ -37,17 +37,13 @@ app.post('/webhook', async (req, res) => {
     console.log('Received request:', JSON.stringify(req.body, null, 2));
     const queryResult = req.body.queryResult;
 
-    // Ensure queryResult and parameters exist
     if (!queryResult || !queryResult.parameters || !queryResult.parameters.date) {
       throw new Error('Invalid request: Missing queryResult or parameters');
     }
 
     let dateParameter = queryResult.parameters.date;
-    // Adjust the date parameter if necessary
-    if (typeof dateParameter === 'string') {
-      dateParameter = dateParameter.toLowerCase();
-    }
 
+    // Use moment to handle date parsing
     let targetDate;
     if (dateParameter.includes('today')) {
       targetDate = moment();
@@ -70,18 +66,16 @@ app.post('/webhook', async (req, res) => {
     const tasksRef = db.collection('tasks');
     const snapshot = await tasksRef.where('startDate', '>=', startOfDay).where('startDate', '<=', endOfDay).get();
 
-    if (snapshot.empty) {
-      res.json({ fulfillmentText: 'You have no tasks for the specified date. Your schedule is free.' });
-    } else {
-      let tasks = [];
-      snapshot.forEach(doc => {
-        const task = doc.data();
-        tasks.push(`Description: ${task.description}, Start Date: ${task.startDate.toDate().toDateString()}, End Date: ${task.endDate.toDate().toDateString()}, Tags: ${task.tags}`);
-      });
-      res.json({ fulfillmentText: `Tasks: ${tasks.join(' | ')}` });
-    }
+    let tasks = [];
+    snapshot.forEach(doc => {
+      const task = doc.data();
+      tasks.push(`Description: ${task.description}, Start Date: ${task.startDate.toDate().toDateString()}, End Date: ${task.endDate.toDate().toDateString()}, Tags: ${task.tags}`);
+    });
+
+    // Respond with tasks list
+    res.json({ fulfillmentMessages: [{ text: { text: [tasks.length > 0 ? `Tasks: ${tasks.join(' | ')}` : 'You have no tasks for the specified date. Your schedule is free.'] } }] });
   } catch (err) {
-    res.json({ fulfillmentText: `Error getting tasks: ${err.message}` });
+    res.json({ fulfillmentMessages: [{ text: { text: [`Error getting tasks: ${err.message}`] } }] });
   }
 });
 
