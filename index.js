@@ -1,4 +1,4 @@
-// REPO: webhookserver
+// REPO: webhook-server
 // index.js
 
 const express = require('express');
@@ -27,7 +27,7 @@ app.options('*', cors());
 // Initialize Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://synch-ur-life-842fe.firebaseio.com' // Replace with your actual database URL
+  databaseURL: 'https://synch-ur-life-842fe.firebaseio.com'  // Replace with your actual database URL
 });
 
 // Webhook endpoint
@@ -36,14 +36,17 @@ app.post('/webhook', async (req, res) => {
     console.log('Received request:', JSON.stringify(req.body, null, 2));
     const queryResult = req.body.queryResult;
 
-    if (!queryResult || !queryResult.parameters) {
+    if (!queryResult || !queryResult.parameters || !queryResult.parameters.date) {
       throw new Error('Invalid request: Missing queryResult or parameters');
     }
 
-    // Forward the response from Dialogflow directly to the frontend
     const responseText = queryResult.fulfillmentText || 'No response from Dialogflow';
+    console.log('Response text:', responseText);
+
+    // Send the response back to the frontend
     res.json({ fulfillmentText: responseText });
   } catch (err) {
+    console.error('Error getting tasks:', err.message);  // Logging errors
     res.json({ fulfillmentText: `Error getting tasks: ${err.message}` });
   }
 });
