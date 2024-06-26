@@ -36,18 +36,18 @@ app.post('/webhook', async (req, res) => {
     console.log('Received request:', JSON.stringify(req.body, null, 2));
     const queryResult = req.body.queryResult;
 
-    if (!queryResult || !queryResult.parameters || !queryResult.parameters.date) {
+    if (!queryResult || !queryResult.parameters || !queryResult.parameters.test_param) {
       throw new Error('Invalid request: Missing queryResult or parameters');
     }
 
-    const responseText = queryResult.fulfillmentText || 'No response from Dialogflow';
+    const responseText = `Test parameter received: ${queryResult.parameters.test_param}`;
     console.log('Response text:', responseText);
 
-    // Send the response back to the frontend
+    // Send the response back to Dialogflow
     res.json({ fulfillmentText: responseText });
   } catch (err) {
-    console.error('Error getting tasks:', err.message);  // Logging errors
-    res.json({ fulfillmentText: `Error getting tasks: ${err.message}` });
+    console.error('Error processing request:', err.message);  // Logging errors
+    res.json({ fulfillmentText: `Error processing request: ${err.message}` });
   }
 });
 
